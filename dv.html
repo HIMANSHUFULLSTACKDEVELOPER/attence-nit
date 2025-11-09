@@ -1,0 +1,2541 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Subject & Section-Wise Attendance Manager</title>
+  <style>
+    :root{ 
+      --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --card: #ffffff;
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --success: #10b981;
+      --success-dark: #059669;
+      --danger: #f43f5e;
+      --danger-dark: #e11d48;
+      --warning: #f59e0b;
+      --info: #06b6d4;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-light: #475569;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    
+    header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      color: var(--text);
+      padding: 32px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    header h1 {
+      font-size: 36px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+    
+    header p {
+      color: var(--text-light);
+      font-size: 16px;
+      font-weight: 500;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 24px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    
+    .stat-card.success::before {
+      background: linear-gradient(90deg, #10b981, #059669);
+    }
+    
+    .stat-card.danger::before {
+      background: linear-gradient(90deg, #f43f5e, #e11d48);
+    }
+    
+    .stat-card.info::before {
+      background: linear-gradient(90deg, #06b6d4, #0891b2);
+    }
+    
+    .stat-card.warning::before {
+      background: linear-gradient(90deg, #f59e0b, #d97706);
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-value {
+      font-size: 42px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .stat-card.success .stat-value {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-card.danger .stat-value {
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-card.info .stat-value {
+      background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-card.warning .stat-value {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-light);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .card h2 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: var(--text);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 3px solid transparent;
+      border-image: linear-gradient(90deg, #667eea, #764ba2) 1;
+    }
+    
+    .input-group {
+      margin-bottom: 20px;
+    }
+    
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .input-group input,
+    .input-group select {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      background: white;
+      font-weight: 500;
+    }
+    
+    .input-group input:focus,
+    .input-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+    
+    .btn {
+      padding: 14px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      color: white;
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      color: white;
+    }
+    
+    .btn-warning {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+    }
+    
+    .btn-outline {
+      background: white;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+    }
+    
+    .btn-small {
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .student-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border: 2px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .student-item:hover {
+      border-color: var(--primary);
+      transform: translateX(4px);
+    }
+    
+    .student-info {
+      flex: 1;
+    }
+    
+    .student-name {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+    
+    .student-roll {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 14px;
+    }
+    
+    thead {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    th {
+      padding: 16px;
+      text-align: left;
+      font-weight: 700;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 12px;
+      border-bottom: 3px solid var(--primary);
+    }
+    
+    td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+    
+    tbody tr {
+      transition: all 0.2s ease;
+    }
+    
+    tbody tr:hover {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+    
+    .status-badge {
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .status-present {
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      color: #065f46;
+    }
+    
+    .status-absent {
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      color: #991b1b;
+    }
+    
+    .view-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 3px solid var(--border);
+      overflow-x: auto;
+    }
+    
+    .tab {
+      padding: 14px 24px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--muted);
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 13px;
+    }
+    
+    .tab:hover {
+      color: var(--primary);
+    }
+    
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    .history-item {
+      padding: 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-left: 4px solid var(--primary);
+      margin-bottom: 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .history-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .history-date {
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    
+    .history-stats {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    
+    .empty-state svg,
+    .empty-state div {
+      font-size: 72px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    .quick-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    
+    .search-box {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    
+    .search-box input {
+      padding-left: 44px;
+    }
+    
+    .search-box::before {
+      content: "🔍";
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+    }
+    
+    .subject-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 8px;
+    }
+    
+    .section-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 8px;
+    }
+    
+    .subject-selector {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 12px;
+      border: 2px solid var(--border);
+    }
+    
+    .subject-chip {
+      padding: 10px 20px;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 700;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .subject-chip:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    
+    .subject-chip.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: transparent;
+    }
+    
+    .section-chip {
+      padding: 10px 20px;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 700;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .section-chip:hover {
+      border-color: var(--warning);
+      transform: translateY(-2px);
+    }
+    
+    .section-chip.active {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+      border-color: transparent;
+    }
+    
+    /* Tablet and Below */
+    @media (max-width: 1200px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    /* Mobile Landscape and Below */
+    @media (max-width: 968px) {
+      body {
+        padding: 12px;
+      }
+      
+      .container {
+        padding: 0;
+      }
+      
+      header {
+        padding: 24px 20px;
+        margin-bottom: 16px;
+      }
+      
+      header h1 {
+        font-size: 24px;
+      }
+      
+      header p {
+        font-size: 14px;
+      }
+      
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      
+      .stat-card {
+        padding: 16px;
+      }
+      
+      .stat-value {
+        font-size: 32px;
+      }
+      
+      .stat-label {
+        font-size: 12px;
+      }
+      
+      .card {
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      
+      .card h2 {
+        font-size: 18px;
+        margin-bottom: 16px;
+      }
+      
+      .grid {
+        gap: 16px;
+      }
+      
+      table {
+        font-size: 13px;
+      }
+      
+      th, td {
+        padding: 10px 8px;
+      }
+      
+      .btn {
+        padding: 12px 16px;
+        font-size: 13px;
+      }
+      
+      .btn-small {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      
+      .quick-actions {
+        gap: 8px;
+      }
+      
+      .view-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      .tab {
+        padding: 12px 16px;
+        font-size: 12px;
+      }
+      
+      .subject-selector {
+        gap: 8px;
+        padding: 12px;
+      }
+      
+      .subject-chip, .section-chip {
+        padding: 8px 16px;
+        font-size: 12px;
+      }
+    }
+    
+    /* Mobile Portrait */
+    @media (max-width: 640px) {
+      body {
+        padding: 8px;
+      }
+      
+      header {
+        padding: 20px 16px;
+        border-radius: 16px;
+      }
+      
+      header h1 {
+        font-size: 20px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      header p {
+        font-size: 13px;
+      }
+      
+      .stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      
+      .stat-card {
+        padding: 14px 12px;
+      }
+      
+      .stat-value {
+        font-size: 28px;
+        margin-bottom: 4px;
+      }
+      
+      .stat-label {
+        font-size: 11px;
+      }
+      
+      .card {
+        padding: 16px;
+        border-radius: 16px;
+      }
+      
+      .card h2 {
+        font-size: 16px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+      
+      .input-group {
+        margin-bottom: 14px;
+      }
+      
+      .input-group label {
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+      
+      .input-group input,
+      .input-group select {
+        padding: 12px;
+        font-size: 14px;
+      }
+      
+      .btn {
+        padding: 12px;
+        font-size: 12px;
+        gap: 6px;
+      }
+      
+      .btn-small {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+      
+      .student-item {
+        padding: 12px;
+        margin-bottom: 8px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      
+      .student-info {
+        width: 100%;
+      }
+      
+      .student-name {
+        font-size: 15px;
+      }
+      
+      .student-roll {
+        font-size: 12px;
+      }
+      
+      .btn-group {
+        width: 100%;
+        justify-content: flex-end;
+      }
+      
+      table {
+        font-size: 12px;
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      thead, tbody, tr {
+        display: block;
+      }
+      
+      thead {
+        display: none;
+      }
+      
+      tr {
+        margin-bottom: 12px;
+        padding: 12px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 12px;
+        border: 2px solid var(--border);
+      }
+      
+      td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border: none;
+      }
+      
+      td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.5px;
+      }
+      
+      td:first-child {
+        padding-top: 0;
+      }
+      
+      td:last-child {
+        padding-bottom: 0;
+      }
+      
+      .status-badge {
+        padding: 4px 12px;
+        font-size: 11px;
+      }
+      
+      .subject-badge, .section-badge {
+        padding: 3px 8px;
+        font-size: 10px;
+        margin-left: 4px;
+      }
+      
+      .view-tabs {
+        gap: 4px;
+        margin-bottom: 16px;
+      }
+      
+      .tab {
+        padding: 10px 12px;
+        font-size: 11px;
+      }
+      
+      .subject-selector {
+        gap: 6px;
+        padding: 10px;
+        flex-wrap: wrap;
+      }
+      
+      .subject-chip, .section-chip {
+        padding: 8px 12px;
+        font-size: 11px;
+      }
+      
+      .history-item {
+        padding: 12px;
+        margin-bottom: 8px;
+      }
+      
+      .history-date {
+        font-size: 14px;
+      }
+      
+      .history-stats {
+        font-size: 12px;
+        margin-bottom: 10px;
+      }
+      
+      .quick-actions {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .quick-actions .btn {
+        width: 100%;
+      }
+      
+      .empty-state {
+        padding: 40px 16px;
+      }
+      
+      .empty-state svg,
+      .empty-state div {
+        font-size: 48px;
+      }
+    }
+    
+    /* Small Mobile */
+    @media (max-width: 380px) {
+      header h1 {
+        font-size: 18px;
+      }
+      
+      .stats {
+        grid-template-columns: 1fr;
+      }
+      
+      .stat-value {
+        font-size: 36px;
+      }
+      
+      .card {
+        padding: 14px;
+      }
+      
+      .card h2 {
+        font-size: 15px;
+      }
+      
+      .subject-chip, .section-chip {
+        padding: 6px 10px;
+        font-size: 10px;
+      }
+    }
+    
+    /* Print Styles */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      
+      .container {
+        max-width: 100%;
+      }
+      
+      header {
+        background: white !important;
+        color: black !important;
+        box-shadow: none;
+        border: 2px solid #000;
+      }
+      
+      header h1 {
+        color: black !important;
+        -webkit-text-fill-color: black !important;
+      }
+      
+      .card {
+        box-shadow: none;
+        border: 1px solid #000;
+        page-break-inside: avoid;
+      }
+      
+      .btn, .quick-actions, .view-tabs, .search-box {
+        display: none !important;
+      }
+      
+      table {
+        border: 1px solid #000;
+      }
+      
+      th, td {
+        border: 1px solid #000;
+      }
+      
+      .stat-card {
+        box-shadow: none;
+        border: 1px solid #000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📚 Subject & Section-Wise Attendance Manager</h1>
+      <p>Comprehensive attendance tracking with subject-wise and section-wise analysis</p>
+    </header>
+
+    <div class="stats">
+      <div class="stat-card info">
+        <div class="stat-value" id="totalStudents">0</div>
+        <div class="stat-label">Total Students</div>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-value" id="presentToday">0</div>
+        <div class="stat-label">Present Today</div>
+      </div>
+      <div class="stat-card danger">
+        <div class="stat-value" id="absentToday">0</div>
+        <div class="stat-label">Absent Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="attendanceRate">0%</div>
+        <div class="stat-label">Attendance Rate</div>
+      </div>
+      <div class="stat-card info">
+        <div class="stat-value" id="totalSubjects">0</div>
+        <div class="stat-label">Total Subjects</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-value" id="totalSections">0</div>
+        <div class="stat-label">Total Sections</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Left Panel: Management -->
+      <div>
+        <!-- Section Management -->
+        <div class="card">
+          <h2>🏫 Section Management</h2>
+          
+          <div class="input-group">
+            <label>Section Name</label>
+            <input type="text" id="sectionName" placeholder="e.g., Section A">
+          </div>
+          
+          <button class="btn btn-warning" id="addSectionBtn" style="width:100%">
+            ➕ Add Section
+          </button>
+          
+          <div id="sectionList" style="margin-top:20px;max-height:200px;overflow-y:auto"></div>
+        </div>
+
+        <!-- Subject Management -->
+        <div class="card" style="margin-top:20px">
+          <h2>🎓 Subject Management</h2>
+          
+          <div class="input-group">
+            <label>Subject Name</label>
+            <input type="text" id="subjectName" placeholder="e.g., Mathematics">
+          </div>
+          
+          <div class="input-group">
+            <label>Subject Code</label>
+            <input type="text" id="subjectCode" placeholder="e.g., MATH101">
+          </div>
+          
+          <button class="btn btn-primary" id="addSubjectBtn" style="width:100%">
+            ➕ Add Subject
+          </button>
+          
+          <div id="subjectList" style="margin-top:20px;max-height:200px;overflow-y:auto"></div>
+        </div>
+
+        <!-- Student Management -->
+        <div class="card" style="margin-top:20px">
+          <h2>👥 Student Management</h2>
+          
+          <div class="input-group">
+            <label>Student Name</label>
+            <input type="text" id="studentName" placeholder="Enter student name">
+          </div>
+          
+          <div class="input-group">
+            <label>Roll Number</label>
+            <input type="text" id="studentRoll" placeholder="Enter roll number">
+          </div>
+          
+          <div class="input-group">
+            <label>Section</label>
+            <select id="studentSection">
+              <option value="">Select Section</option>
+            </select>
+          </div>
+          
+          <button class="btn btn-success" id="addStudentBtn" style="width:100%">
+            ➕ Add Student
+          </button>
+          
+          <div class="quick-actions">
+            <button class="btn btn-outline btn-small" id="loadSampleBtn">📝 Load Sample</button>
+            <button class="btn btn-secondary btn-small" id="clearAllBtn">🗑️ Clear All</button>
+          </div>
+        </div>
+
+        <!-- Student List -->
+        <div class="card" style="margin-top:20px">
+          <h2>📋 Student List</h2>
+          <div class="search-box">
+            <input type="text" id="searchStudent" placeholder="Search students...">
+          </div>
+          <div id="studentList" style="max-height:300px;overflow-y:auto"></div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Attendance Tracking -->
+      <div>
+        <div class="card">
+          <h2>📅 Attendance Tracking</h2>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <div class="input-group">
+              <label>Select Date</label>
+              <input type="date" id="dateSelect">
+            </div>
+            <div class="input-group">
+              <label>Quick Actions</label>
+              <select id="quickAction">
+                <option value="">Select action...</option>
+                <option value="all-present">✓ Mark All Present</option>
+                <option value="all-absent">✗ Mark All Absent</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Section Filter -->
+          <div style="margin-bottom:16px">
+            <label style="display:block;margin-bottom:8px;font-weight:600;font-size:14px;color:var(--text);text-transform:uppercase;letter-spacing:0.5px">Filter by Section</label>
+            <div class="subject-selector" id="sectionSelector"></div>
+          </div>
+
+          <!-- Subject Filter -->
+          <div style="margin-bottom:16px">
+            <label style="display:block;margin-bottom:8px;font-weight:600;font-size:14px;color:var(--text);text-transform:uppercase;letter-spacing:0.5px">Filter by Subject</label>
+            <div class="subject-selector" id="subjectSelector"></div>
+          </div>
+
+          <div class="view-tabs">
+            <button class="tab active" data-view="today">Today's Attendance</button>
+            <button class="tab" data-view="section-wise">Section-Wise View</button>
+            <button class="tab" data-view="subject-wise">Subject-Wise View</button>
+            <button class="tab" data-view="history">History</button>
+            <button class="tab" data-view="reports">Reports</button>
+          </div>
+
+          <div id="todayView">
+            <div style="max-height:500px;overflow-y:auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Roll No</th>
+                    <th>Name</th>
+                    <th>Section</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="attendanceTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="sectionWiseView" style="display:none">
+            <div style="margin-bottom:16px">
+              <label style="display:block;margin-bottom:8px;font-weight:600;font-size:14px;color:var(--text);text-transform:uppercase;letter-spacing:0.5px">View Format</label>
+              <select id="sectionViewFormat" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:600">
+                <option value="detailed">Detailed View with Stats</option>
+                <option value="table">Compact Table View</option>
+              </select>
+            </div>
+            <div id="sectionWiseContent"></div>
+          </div>
+
+          <div id="subjectWiseView" style="display:none">
+            <div id="subjectWiseContent"></div>
+          </div>
+
+          <div id="historyView" style="display:none">
+            <div id="historyList" style="max-height:500px;overflow-y:auto"></div>
+          </div>
+
+          <div id="reportsView" style="display:none">
+            <div id="reportContent"></div>
+          </div>
+
+          <div class="quick-actions" style="margin-top:20px;border-top:3px solid var(--border);padding-top:16px">
+            <button class="btn btn-success" id="exportCsvBtn">📥 Export Today's CSV</button>
+            <button class="btn btn-warning" id="exportSectionCsvBtn">🏫 Export Section CSV</button>
+            <button class="btn btn-primary" id="exportSubjectCsvBtn">📊 Export Subject CSV</button>
+            <button class="btn btn-outline" id="exportAllBtn">📁 Export All Records</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'teacher_attendance_section_subject_v2';
+    let state = {
+      students: [],
+      subjects: [],
+      sections: [],
+      attendance: {},
+      selectedSubject: null,
+      selectedSection: null,
+      savedAt: null
+    };
+
+    function init() {
+      loadState();
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('dateSelect').value = today;
+      render();
+      attachEventListeners();
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          state = JSON.parse(saved);
+        } catch (e) {
+          console.error('Failed to load state:', e);
+        }
+      }
+    }
+
+    function saveState() {
+      state.savedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function render() {
+      renderStats();
+      renderSectionList();
+      renderSubjectList();
+      renderStudentSectionDropdown();
+      renderStudentList();
+      renderSectionSelector();
+      renderSubjectSelector();
+      renderAttendanceTable();
+      renderSectionWiseView();
+      renderSubjectWiseView();
+      renderHistory();
+      renderReports();
+    }
+
+    function renderStats() {
+      const date = document.getElementById('dateSelect').value;
+      const subject = state.selectedSubject;
+      const section = state.selectedSection;
+      
+      let filteredStudents = state.students;
+      if (section) {
+        filteredStudents = filteredStudents.filter(s => s.section === section);
+      }
+      
+      const total = filteredStudents.length;
+      let present = 0;
+      
+      filteredStudents.forEach(s => {
+        if (subject && getAttendance(date, s.id, subject) === 'present') {
+          present++;
+        } else if (!subject && getOverallAttendance(date, s.id) === 'present') {
+          present++;
+        }
+      });
+      
+      const absent = total - present;
+      const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+      
+      document.getElementById('totalStudents').textContent = total;
+      document.getElementById('presentToday').textContent = present;
+      document.getElementById('absentToday').textContent = absent;
+      document.getElementById('attendanceRate').textContent = rate + '%';
+      document.getElementById('totalSubjects').textContent = state.subjects.length;
+      document.getElementById('totalSections').textContent = state.sections.length;
+    }
+
+    function renderSectionList() {
+      const container = document.getElementById('sectionList');
+      
+      if (state.sections.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="padding:20px">
+            <p style="font-size:14px">No sections added yet</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = state.sections.map(sec => {
+        const studentCount = state.students.filter(s => s.section === sec.id).length;
+        return `
+          <div class="student-item">
+            <div class="student-info">
+              <div class="student-name">${escapeHtml(sec.name)}</div>
+              <div class="student-roll">${studentCount} students</div>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-danger btn-small" onclick="removeSection('${sec.id}')">
+                🗑️
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderSubjectList() {
+      const container = document.getElementById('subjectList');
+      
+      if (state.subjects.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="padding:20px">
+            <p style="font-size:14px">No subjects added yet</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = state.subjects.map(sub => `
+        <div class="student-item">
+          <div class="student-info">
+            <div class="student-name">${escapeHtml(sub.name)}</div>
+            <div class="student-roll">Code: ${escapeHtml(sub.code)}</div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-danger btn-small" onclick="removeSubject('${sub.id}')">
+              🗑️
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderStudentSectionDropdown() {
+      const select = document.getElementById('studentSection');
+      select.innerHTML = '<option value="">Select Section</option>' + 
+        state.sections.map(sec => 
+          `<option value="${sec.id}">${escapeHtml(sec.name)}</option>`
+        ).join('');
+    }
+
+    function renderStudentList() {
+      const container = document.getElementById('studentList');
+      const search = document.getElementById('searchStudent').value.toLowerCase();
+      
+      if (state.students.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size:48px;margin-bottom:12px">👥</div>
+            <p>No students added yet</p>
+          </div>
+        `;
+        return;
+      }
+      
+      const filtered = state.students.filter(s => 
+        s.name.toLowerCase().includes(search) || 
+        s.roll.toLowerCase().includes(search)
+      );
+      
+      container.innerHTML = filtered.map(s => {
+        const section = state.sections.find(sec => sec.id === s.section);
+        return `
+          <div class="student-item">
+            <div class="student-info">
+              <div class="student-name">
+                ${escapeHtml(s.name)}
+                ${section ? `<span class="section-badge">${escapeHtml(section.name)}</span>` : ''}
+              </div>
+              <div class="student-roll">Roll: ${escapeHtml(s.roll)}</div>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-danger btn-small" onclick="removeStudent('${s.id}')">
+                🗑️
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderSectionSelector() {
+      const container = document.getElementById('sectionSelector');
+      
+      if (state.sections.length === 0) {
+        container.innerHTML = `
+          <div style="width:100%;text-align:center;color:var(--muted);font-weight:600">
+            Add sections to filter by section
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = `
+        <div class="section-chip ${!state.selectedSection ? 'active' : ''}" onclick="selectSection(null)">
+          🏫 All Sections
+        </div>
+        ${state.sections.map(sec => `
+          <div class="section-chip ${state.selectedSection === sec.id ? 'active' : ''}" 
+               onclick="selectSection('${sec.id}')">
+            📂 ${escapeHtml(sec.name)}
+          </div>
+        `).join('')}
+      `;
+    }
+
+    function renderSubjectSelector() {
+      const container = document.getElementById('subjectSelector');
+      
+      if (state.subjects.length === 0) {
+        container.innerHTML = `
+          <div style="width:100%;text-align:center;color:var(--muted);font-weight:600">
+            Add subjects to filter by subject
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = `
+        <div class="subject-chip ${!state.selectedSubject ? 'active' : ''}" onclick="selectSubject(null)">
+          📊 All Subjects
+        </div>
+        ${state.subjects.map(sub => `
+          <div class="subject-chip ${state.selectedSubject === sub.id ? 'active' : ''}" 
+               onclick="selectSubject('${sub.id}')">
+            📘 ${escapeHtml(sub.code)}
+          </div>
+        `).join('')}
+      `;
+    }
+
+    function renderAttendanceTable() {
+      const tbody = document.getElementById('attendanceTable');
+      const date = document.getElementById('dateSelect').value;
+      const subject = state.selectedSubject;
+      const section = state.selectedSection;
+      
+      let filteredStudents = state.students;
+      if (section) {
+        filteredStudents = filteredStudents.filter(s => s.section === section);
+      }
+      
+      if (filteredStudents.length === 0) {
+        tbody.innerHTML = `
+          <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted)">
+            No students to track
+          </td></tr>
+        `;
+        return;
+      }
+      
+      tbody.innerHTML = filteredStudents.map(s => {
+        const status = subject ? 
+          getAttendance(date, s.id, subject) : 
+          getOverallAttendance(date, s.id);
+        const isPresent = status === 'present';
+        const sectionObj = state.sections.find(sec => sec.id === s.section);
+        const subjectObj = subject ? state.subjects.find(sub => sub.id === subject) : null;
+        
+        return `
+          <tr>
+            <td data-label="Roll No"><strong>${escapeHtml(s.roll)}</strong></td>
+            <td data-label="Name">
+              ${escapeHtml(s.name)}
+              ${subjectObj ? `<span class="subject-badge">${escapeHtml(subjectObj.code)}</span>` : ''}
+            </td>
+            <td data-label="Section">
+              ${sectionObj ? `<span class="section-badge">${escapeHtml(sectionObj.name)}</span>` : '-'}
+            </td>
+            <td data-label="Status">
+              <span class="status-badge ${isPresent ? 'status-present' : 'status-absent'}">
+                ${isPresent ? '✓ Present' : '✗ Absent'}
+              </span>
+            </td>
+            <td data-label="Action">
+              <button class="btn ${isPresent ? 'btn-danger' : 'btn-success'} btn-small" 
+                      onclick="toggleAttendance('${date}', '${s.id}', ${subject ? `'${subject}'` : 'null'})">
+                ${isPresent ? '✗ Mark Absent' : '✓ Mark Present'}
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderSectionWiseView() {
+      const container = document.getElementById('sectionWiseContent');
+      const date = document.getElementById('dateSelect').value;
+      const viewFormat = document.getElementById('sectionViewFormat')?.value || 'detailed';
+      
+      if (state.sections.length === 0 || state.students.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size:48px;margin-bottom:12px">🏫</div>
+            <p>Add sections and students to view section-wise attendance</p>
+          </div>
+        `;
+        return;
+      }
+      
+      if (viewFormat === 'table') {
+        // Compact Table View - All sections in one table
+        container.innerHTML = `
+          <div style="max-height:500px;overflow-y:auto;overflow-x:auto">
+            <table style="min-width:800px">
+              <thead>
+                <tr>
+                  <th style="position:sticky;left:0;background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);z-index:11">Section</th>
+                  <th style="position:sticky;left:80px;background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);z-index:11">Roll No</th>
+                  <th style="position:sticky;left:160px;background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);z-index:11">Name</th>
+                  ${state.subjects.map(sub => `
+                    <th style="text-align:center">${escapeHtml(sub.code)}</th>
+                  `).join('')}
+                  <th style="text-align:center">Overall</th>
+                  <th style="text-align:center">Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${state.sections.map(section => {
+                  const sectionStudents = state.students.filter(s => s.section === section.id);
+                  
+                  if (sectionStudents.length === 0) {
+                    return `
+                      <tr>
+                        <td colspan="${state.subjects.length + 5}" style="text-align:center;padding:20px;color:var(--muted);background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)">
+                          <strong>🏫 ${escapeHtml(section.name)}</strong> - No students in this section
+                        </td>
+                      </tr>
+                    `;
+                  }
+                  
+                  return sectionStudents.map((student, idx) => {
+                    let presentCount = 0;
+                    const subjectCells = state.subjects.map(subject => {
+                      const status = getAttendance(date, student.id, subject.id);
+                      if (status === 'present') presentCount++;
+                      return `
+                        <td data-label="${escapeHtml(subject.code)}" style="text-align:center;padding:12px">
+                          <span class="status-badge ${status === 'present' ? 'status-present' : 'status-absent'}" style="padding:4px 10px;font-size:11px">
+                            ${status === 'present' ? '✓' : '✗'}
+                          </span>
+                        </td>
+                      `;
+                    }).join('');
+                    
+                    const rate = state.subjects.length > 0 ? Math.round((presentCount / state.subjects.length) * 100) : 0;
+                    
+                    return `
+                      <tr style="${idx === 0 ? 'border-top:3px solid var(--warning)' : ''}">
+                        <td data-label="Section" style="position:sticky;left:0;background:white;font-weight:700;padding:12px">
+                          ${idx === 0 ? `<span class="section-badge">${escapeHtml(section.name)}</span>` : ''}
+                        </td>
+                        <td data-label="Roll No" style="position:sticky;left:80px;background:white;font-weight:700;padding:12px">
+                          ${escapeHtml(student.roll)}
+                        </td>
+                        <td data-label="Name" style="position:sticky;left:160px;background:white;padding:12px">
+                          ${escapeHtml(student.name)}
+                        </td>
+                        ${subjectCells}
+                        <td data-label="Overall" style="text-align:center;font-weight:700;padding:12px">
+                          ${presentCount}/${state.subjects.length}
+                        </td>
+                        <td data-label="Rate" style="text-align:center;padding:12px">
+                          <span class="status-badge ${rate >= 75 ? 'status-present' : 'status-absent'}" style="padding:6px 12px">
+                            ${rate}%
+                          </span>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('');
+                }).join('')}
+              </tbody>
+            </table>
+            
+            ${state.sections.length > 0 ? `
+              <div style="margin-top:20px;padding:20px;background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);border-radius:12px;border:2px solid var(--border)">
+                <h4 style="font-size:16px;font-weight:700;margin-bottom:16px;color:var(--text)">📊 Section Summary</h4>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+                  ${state.sections.map(section => {
+                    const sectionStudents = state.students.filter(s => s.section === section.id);
+                    let totalPresent = 0;
+                    let totalClasses = 0;
+                    
+                    sectionStudents.forEach(student => {
+                      state.subjects.forEach(subject => {
+                        if (getAttendance(date, student.id, subject.id) === 'present') {
+                          totalPresent++;
+                        }
+                        totalClasses++;
+                      });
+                    });
+                    
+                    const rate = totalClasses > 0 ? Math.round((totalPresent / totalClasses) * 100) : 0;
+                    
+                    return `
+                      <div style="padding:16px;background:white;border-radius:8px;border:2px solid var(--border);text-align:center">
+                        <div style="font-weight:700;font-size:14px;margin-bottom:8px;color:var(--text)">
+                          🏫 ${escapeHtml(section.name)}
+                        </div>
+                        <div style="font-size:32px;font-weight:800;margin-bottom:4px;background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+                          ${rate}%
+                        </div>
+                        <div style="font-size:12px;color:var(--muted);font-weight:600">
+                          ${totalPresent}/${totalClasses} present
+                        </div>
+                        <div style="font-size:11px;color:var(--text-light);font-weight:600;margin-top:4px">
+                          ${sectionStudents.length} students
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      } else {
+        // Detailed View with Stats (Original)
+        container.innerHTML = `
+          <div style="max-height:500px;overflow-y:auto">
+            ${state.sections.map(section => {
+              const sectionStudents = state.students.filter(s => s.section === section.id);
+              
+              if (sectionStudents.length === 0) {
+                return `
+                  <div style="margin-bottom:24px;padding:20px;background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);border-radius:12px;border:2px solid var(--border)">
+                    <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">
+                      🏫 ${escapeHtml(section.name)}
+                    </h3>
+                    <p style="color:var(--muted);font-size:14px">No students in this section</p>
+                  </div>
+                `;
+              }
+              
+              // Calculate section stats across all subjects
+              let totalPresent = 0;
+              let totalClasses = 0;
+              
+              sectionStudents.forEach(student => {
+                state.subjects.forEach(subject => {
+                  if (getAttendance(date, student.id, subject.id) === 'present') {
+                    totalPresent++;
+                  }
+                  totalClasses++;
+                });
+              });
+              
+              const rate = totalClasses > 0 ? Math.round((totalPresent / totalClasses) * 100) : 0;
+              
+              return `
+                <div style="margin-bottom:24px;padding:20px;background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);border-radius:12px;border:2px solid var(--border)">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+                    <div>
+                      <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px">
+                        🏫 ${escapeHtml(section.name)}
+                      </h3>
+                      <p style="font-size:13px;color:var(--muted);font-weight:600">
+                        ${sectionStudents.length} students
+                      </p>
+                    </div>
+                    <div style="text-align:right">
+                      <div style="font-size:32px;font-weight:800;background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+                        ${rate}%
+                      </div>
+                      <div style="font-size:12px;color:var(--muted);font-weight:600">
+                        Overall Attendance
+                      </div>
+                    </div>
+                  </div>
+                  
+                  ${state.subjects.length > 0 ? `
+                    <div style="margin-bottom:16px">
+                      <h4 style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text)">Subject-wise breakdown:</h4>
+                      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+                        ${state.subjects.map(subject => {
+                          const present = sectionStudents.filter(s => 
+                            getAttendance(date, s.id, subject.id) === 'present'
+                          ).length;
+                          const total = sectionStudents.length;
+                          const subRate = total > 0 ? Math.round((present / total) * 100) : 0;
+                          
+                          return `
+                            <div style="padding:12px;background:white;border-radius:8px;border:2px solid var(--border)">
+                              <div style="font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">
+                                📘 ${escapeHtml(subject.code)}
+                              </div>
+                              <div style="font-size:20px;font-weight:800;color:${subRate >= 75 ? 'var(--success)' : 'var(--danger)'}">
+                                ${subRate}%
+                              </div>
+                              <div style="font-size:11px;color:var(--muted);font-weight:600">
+                                ${present}/${total} present
+                              </div>
+                            </div>
+                          `;
+                        }).join('')}
+                      </div>
+                    </div>
+                  ` : ''}
+                  
+                  <table style="font-size:13px">
+                    <thead>
+                      <tr>
+                        <th style="padding:12px">Roll</th>
+                        <th style="padding:12px">Name</th>
+                        ${state.subjects.map(sub => `
+                          <th style="padding:12px">${escapeHtml(sub.code)}</th>
+                        `).join('')}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${sectionStudents.map(s => `
+                        <tr>
+                          <td style="padding:12px"><strong>${escapeHtml(s.roll)}</strong></td>
+                          <td style="padding:12px">${escapeHtml(s.name)}</td>
+                          ${state.subjects.map(subject => {
+                            const status = getAttendance(date, s.id, subject.id);
+                            const isPresent = status === 'present';
+                            return `
+                              <td style="padding:12px">
+                                <span class="status-badge ${isPresent ? 'status-present' : 'status-absent'}">
+                                  ${isPresent ? '✓' : '✗'}
+                                </span>
+                              </td>
+                            `;
+                          }).join('')}
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+    }
+
+    function renderSubjectWiseView() {
+      const container = document.getElementById('subjectWiseContent');
+      const date = document.getElementById('dateSelect').value;
+      
+      if (state.subjects.length === 0 || state.students.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size:48px;margin-bottom:12px">📚</div>
+            <p>Add subjects and students to view subject-wise attendance</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = `
+        <div style="max-height:500px;overflow-y:auto">
+          ${state.subjects.map(subject => {
+            const present = state.students.filter(s => 
+              getAttendance(date, s.id, subject.id) === 'present'
+            ).length;
+            const total = state.students.length;
+            const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+            
+            // Group by sections
+            const sectionGroups = {};
+            state.sections.forEach(sec => {
+              sectionGroups[sec.id] = {
+                name: sec.name,
+                students: state.students.filter(s => s.section === sec.id)
+              };
+            });
+            
+            return `
+              <div style="margin-bottom:24px;padding:20px;background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);border-radius:12px;border:2px solid var(--border)">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+                  <div>
+                    <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px">
+                      📘 ${escapeHtml(subject.name)}
+                    </h3>
+                    <p style="font-size:13px;color:var(--muted);font-weight:600">
+                      Code: ${escapeHtml(subject.code)}
+                    </p>
+                  </div>
+                  <div style="text-align:right">
+                    <div style="font-size:32px;font-weight:800;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+                      ${rate}%
+                    </div>
+                    <div style="font-size:12px;color:var(--muted);font-weight:600">
+                      ${present}/${total} Present
+                    </div>
+                  </div>
+                </div>
+                
+                ${state.sections.length > 0 ? `
+                  <div style="margin-bottom:16px">
+                    <h4 style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text)">Section-wise breakdown:</h4>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+                      ${state.sections.map(section => {
+                        const secStudents = state.students.filter(s => s.section === section.id);
+                        const secPresent = secStudents.filter(s => 
+                          getAttendance(date, s.id, subject.id) === 'present'
+                        ).length;
+                        const secTotal = secStudents.length;
+                        const secRate = secTotal > 0 ? Math.round((secPresent / secTotal) * 100) : 0;
+                        
+                        return `
+                          <div style="padding:12px;background:white;border-radius:8px;border:2px solid var(--border)">
+                            <div style="font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">
+                              🏫 ${escapeHtml(section.name)}
+                            </div>
+                            <div style="font-size:20px;font-weight:800;color:${secRate >= 75 ? 'var(--success)' : 'var(--danger)'}">
+                              ${secRate}%
+                            </div>
+                            <div style="font-size:11px;color:var(--muted);font-weight:600">
+                              ${secPresent}/${secTotal} present
+                            </div>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+                
+                <table style="font-size:13px">
+                  <thead>
+                    <tr>
+                      <th style="padding:12px">Roll</th>
+                      <th style="padding:12px">Name</th>
+                      <th style="padding:12px">Section</th>
+                      <th style="padding:12px">Status</th>
+                      <th style="padding:12px">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${state.students.map(s => {
+                      const status = getAttendance(date, s.id, subject.id);
+                      const isPresent = status === 'present';
+                      const section = state.sections.find(sec => sec.id === s.section);
+                      return `
+                        <tr>
+                          <td style="padding:12px"><strong>${escapeHtml(s.roll)}</strong></td>
+                          <td style="padding:12px">${escapeHtml(s.name)}</td>
+                          <td style="padding:12px">
+                            ${section ? `<span class="section-badge">${escapeHtml(section.name)}</span>` : '-'}
+                          </td>
+                          <td style="padding:12px">
+                            <span class="status-badge ${isPresent ? 'status-present' : 'status-absent'}">
+                              ${isPresent ? '✓' : '✗'}
+                            </span>
+                          </td>
+                          <td style="padding:12px">
+                            <button class="btn ${isPresent ? 'btn-danger' : 'btn-success'} btn-small" 
+                                    onclick="toggleAttendance('${date}', '${s.id}', '${subject.id}')">
+                              ${isPresent ? '✗' : '✓'}
+                            </button>
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('historyList');
+      const dates = Object.keys(state.attendance).sort().reverse();
+      
+      if (dates.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size:48px;margin-bottom:12px">📅</div>
+            <p>No attendance records yet</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = dates.map(date => {
+        const dateData = state.attendance[date];
+        const subjectStats = {};
+        const sectionStats = {};
+        
+        state.subjects.forEach(subject => {
+          const present = state.students.filter(s => 
+            dateData[s.id]?.[subject.id] === 'present'
+          ).length;
+          subjectStats[subject.id] = {
+            name: subject.name,
+            code: subject.code,
+            present,
+            total: state.students.length
+          };
+        });
+        
+        state.sections.forEach(section => {
+          const sectionStudents = state.students.filter(s => s.section === section.id);
+          let present = 0;
+          let total = 0;
+          sectionStudents.forEach(student => {
+            state.subjects.forEach(subject => {
+              if (dateData[student.id]?.[subject.id] === 'present') present++;
+              total++;
+            });
+          });
+          sectionStats[section.id] = {
+            name: section.name,
+            present,
+            total,
+            rate: total > 0 ? Math.round((present / total) * 100) : 0
+          };
+        });
+        
+        return `
+          <div class="history-item">
+            <div class="history-date">📅 ${formatDate(date)}</div>
+            
+            ${state.subjects.length > 0 ? `
+              <div style="margin:12px 0">
+                <strong style="font-size:12px;color:var(--muted);text-transform:uppercase">Subjects:</strong>
+                <div style="margin-top:8px">
+                  ${Object.values(subjectStats).map(stat => `
+                    <div style="display:inline-block;margin:4px 8px 4px 0;padding:6px 12px;background:white;border-radius:8px;font-size:13px;font-weight:600">
+                      📘 ${escapeHtml(stat.code)}: 
+                      <span style="color:var(--success)">${stat.present}</span>/${stat.total}
+                      <span style="color:var(--muted)">(${Math.round((stat.present/stat.total)*100)}%)</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+            
+            ${state.sections.length > 0 ? `
+              <div style="margin:12px 0">
+                <strong style="font-size:12px;color:var(--muted);text-transform:uppercase">Sections:</strong>
+                <div style="margin-top:8px">
+                  ${Object.values(sectionStats).map(stat => `
+                    <div style="display:inline-block;margin:4px 8px 4px 0;padding:6px 12px;background:white;border-radius:8px;font-size:13px;font-weight:600">
+                      🏫 ${escapeHtml(stat.name)}: 
+                      <span style="color:${stat.rate >= 75 ? 'var(--success)' : 'var(--danger)'}">${stat.rate}%</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+            
+            <div style="margin-top:12px">
+              <button class="btn btn-outline btn-small" onclick="viewDate('${date}')">👁️ View</button>
+              <button class="btn btn-secondary btn-small" onclick="deleteDate('${date}')">🗑️ Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderReports() {
+      const container = document.getElementById('reportContent');
+      
+      if (state.students.length === 0 || state.subjects.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size:48px;margin-bottom:12px">📊</div>
+            <p>Add students and subjects to view reports</p>
+          </div>
+        `;
+        return;
+      }
+      
+      const dates = Object.keys(state.attendance);
+      
+      // Overall student report
+      const studentReports = state.students.map(s => {
+        const subjectStats = {};
+        let totalPresent = 0;
+        let totalClasses = 0;
+        
+        state.subjects.forEach(subject => {
+          let present = 0;
+          dates.forEach(date => {
+            if (getAttendance(date, s.id, subject.id) === 'present') present++;
+          });
+          subjectStats[subject.id] = {
+            present,
+            total: dates.length,
+            rate: dates.length > 0 ? Math.round((present / dates.length) * 100) : 0
+          };
+          totalPresent += present;
+          totalClasses += dates.length;
+        });
+        
+        const overallRate = totalClasses > 0 ? Math.round((totalPresent / totalClasses) * 100) : 0;
+        const section = state.sections.find(sec => sec.id === s.section);
+        
+        return {
+          ...s,
+          section: section,
+          subjectStats,
+          overallRate,
+          totalPresent,
+          totalClasses
+        };
+      }).sort((a, b) => b.overallRate - a.overallRate);
+      
+      container.innerHTML = `
+        <div style="margin-bottom:32px">
+          <h3 style="font-size:20px;font-weight:700;margin-bottom:16px;color:var(--text)">
+            🏆 Overall Student Performance
+          </h3>
+          <div style="max-height:400px;overflow-y:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Roll</th>
+                  <th>Name</th>
+                  <th>Section</th>
+                  <th>Present/Total</th>
+                  <th>Overall %</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${studentReports.map((s, i) => `
+                  <tr>
+                    <td data-label="Rank"><strong>#${i + 1}</strong></td>
+                    <td data-label="Roll">${escapeHtml(s.roll)}</td>
+                    <td data-label="Name">${escapeHtml(s.name)}</td>
+                    <td data-label="Section">
+                      ${s.section ? `<span class="section-badge">${escapeHtml(s.section.name)}</span>` : '-'}
+                    </td>
+                    <td data-label="Present/Total">${s.totalPresent}/${s.totalClasses}</td>
+                    <td data-label="Overall %">
+                      <span class="status-badge ${s.overallRate >= 75 ? 'status-present' : 'status-absent'}">
+                        ${s.overallRate}%
+                      </span>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        ${state.sections.length > 0 ? `
+          <div style="margin-bottom:32px">
+            <h3 style="font-size:20px;font-weight:700;margin-bottom:16px;color:var(--text)">
+              🏫 Section-Wise Performance
+            </h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px">
+              ${state.sections.map(section => {
+                const secStudents = state.students.filter(s => s.section === section.id);
+                let totalPresent = 0;
+                let totalClasses = 0;
+                
+                secStudents.forEach(student => {
+                  dates.forEach(date => {
+                    state.subjects.forEach(subject => {
+                      if (getAttendance(date, student.id, subject.id) === 'present') {
+                        totalPresent++;
+                      }
+                      totalClasses++;
+                    });
+                  });
+                });
+                
+                const rate = totalClasses > 0 ? Math.round((totalPresent / totalClasses) * 100) : 0;
+                
+                return `
+                  <div style="padding:20px;background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);border-radius:12px;border:2px solid var(--border)">
+                    <div style="font-weight:700;font-size:18px;margin-bottom:8px;color:var(--text)">
+                      🏫 ${escapeHtml(section.name)}
+                    </div>
+                    <div style="font-size:36px;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+                      ${rate}%
+                    </div>
+                    <div style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:4px">
+                      ${secStudents.length} students
+                    </div>
+                    <div style="font-size:12px;color:var(--text-light);font-weight:600">
+                      ${totalPresent}/${totalClasses} total attendance
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        ` : ''}
+        
+        <div>
+          <h3 style="font-size:20px;font-weight:700;margin-bottom:16px;color:var(--text)">
+            📚 Subject & Section-Wise Detailed Report
+          </h3>
+          <div style="max-height:400px;overflow-y:auto">
+            ${studentReports.map(student => `
+              <div style="margin-bottom:20px;padding:20px;background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);border-radius:12px;border:2px solid var(--border)">
+                <div style="font-weight:700;font-size:16px;margin-bottom:12px;color:var(--text);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+                  <div>
+                    ${escapeHtml(student.name)} (${escapeHtml(student.roll)})
+                    ${student.section ? `<span class="section-badge">${escapeHtml(student.section.name)}</span>` : ''}
+                  </div>
+                  <span style="color:var(--primary)">Overall: ${student.overallRate}%</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+                  ${state.subjects.map(subject => {
+                    const stats = student.subjectStats[subject.id];
+                    return `
+                      <div style="padding:12px;background:white;border-radius:8px;border:2px solid var(--border)">
+                        <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px">
+                          📘 ${escapeHtml(subject.code)}
+                        </div>
+                        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">
+                          ${escapeHtml(subject.name)}
+                        </div>
+                        <div style="font-size:20px;font-weight:800;color:${stats.rate >= 75 ? 'var(--success)' : 'var(--danger)'}">
+                          ${stats.rate}%
+                        </div>
+                        <div style="font-size:11px;color:var(--muted);font-weight:600">
+                          ${stats.present}/${stats.total} classes
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function getAttendance(date, studentId, subjectId) {
+      return state.attendance[date]?.[studentId]?.[subjectId] || 'absent';
+    }
+
+    function getOverallAttendance(date, studentId) {
+      if (!state.subjects.length) return 'absent';
+      const presentCount = state.subjects.filter(sub => 
+        getAttendance(date, studentId, sub.id) === 'present'
+      ).length;
+      return presentCount > state.subjects.length / 2 ? 'present' : 'absent';
+    }
+
+    function setAttendance(date, studentId, subjectId, status) {
+      if (!state.attendance[date]) state.attendance[date] = {};
+      if (!state.attendance[date][studentId]) state.attendance[date][studentId] = {};
+      state.attendance[date][studentId][subjectId] = status;
+    }
+
+    function toggleAttendance(date, studentId, subjectId) {
+      if (!subjectId) {
+        state.subjects.forEach(sub => {
+          const current = getAttendance(date, studentId, sub.id);
+          setAttendance(date, studentId, sub.id, current === 'present' ? 'absent' : 'present');
+        });
+      } else {
+        const current = getAttendance(date, studentId, subjectId);
+        setAttendance(date, studentId, subjectId, current === 'present' ? 'absent' : 'present');
+      }
+      saveState();
+      render();
+    }
+
+    function selectSubject(subjectId) {
+      state.selectedSubject = subjectId;
+      render();
+    }
+
+    function selectSection(sectionId) {
+      state.selectedSection = sectionId;
+      render();
+    }
+
+    function removeStudent(id) {
+      if (!confirm('Remove this student? All attendance records will be deleted.')) return;
+      state.students = state.students.filter(s => s.id !== id);
+      Object.keys(state.attendance).forEach(date => {
+        delete state.attendance[date][id];
+      });
+      saveState();
+      render();
+    }
+
+    function removeSubject(id) {
+      if (!confirm('Remove this subject? All attendance records for this subject will be deleted.')) return;
+      state.subjects = state.subjects.filter(s => s.id !== id);
+      Object.keys(state.attendance).forEach(date => {
+        Object.keys(state.attendance[date]).forEach(studentId => {
+          delete state.attendance[date][studentId][id];
+        });
+      });
+      if (state.selectedSubject === id) state.selectedSubject = null;
+      saveState();
+      render();
+    }
+
+    function removeSection(id) {
+      const studentsInSection = state.students.filter(s => s.section === id);
+      if (studentsInSection.length > 0) {
+        if (!confirm(`This section has ${studentsInSection.length} students. Remove section anyway? Students will remain but section assignment will be cleared.`)) return;
+        state.students = state.students.map(s => 
+          s.section === id ? { ...s, section: null } : s
+        );
+      }
+      state.sections = state.sections.filter(s => s.id !== id);
+      if (state.selectedSection === id) state.selectedSection = null;
+      saveState();
+      render();
+    }
+
+    function viewDate(date) {
+      document.getElementById('dateSelect').value = date;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector('[data-view="today"]').classList.add('active');
+      switchView('today');
+      render();
+    }
+
+    function deleteDate(date) {
+      if (!confirm(`Delete attendance records for ${formatDate(date)}?`)) return;
+      delete state.attendance[date];
+      saveState();
+      render();
+    }
+
+    function switchView(view) {
+      document.getElementById('todayView').style.display = view === 'today' ? 'block' : 'none';
+      document.getElementById('sectionWiseView').style.display = view === 'section-wise' ? 'block' : 'none';
+      document.getElementById('subjectWiseView').style.display = view === 'subject-wise' ? 'block' : 'none';
+      document.getElementById('historyView').style.display = view === 'history' ? 'block' : 'none';
+      document.getElementById('reportsView').style.display = view === 'reports' ? 'block' : 'none';
+    }
+
+    function attachEventListeners() {
+      document.getElementById('addSectionBtn').addEventListener('click', () => {
+        const name = document.getElementById('sectionName').value.trim();
+        
+        if (!name) {
+          alert('Please enter section name');
+          return;
+        }
+        
+        const id = 'sec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        state.sections.push({ id, name });
+        
+        document.getElementById('sectionName').value = '';
+        
+        saveState();
+        render();
+      });
+
+      document.getElementById('addSubjectBtn').addEventListener('click', () => {
+        const name = document.getElementById('subjectName').value.trim();
+        const code = document.getElementById('subjectCode').value.trim();
+        
+        if (!name || !code) {
+          alert('Please enter both subject name and code');
+          return;
+        }
+        
+        const id = 'sub_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        state.subjects.push({ id, name, code });
+        
+        document.getElementById('subjectName').value = '';
+        document.getElementById('subjectCode').value = '';
+        
+        saveState();
+        render();
+      });
+
+      document.getElementById('addStudentBtn').addEventListener('click', () => {
+        const name = document.getElementById('studentName').value.trim();
+        const roll = document.getElementById('studentRoll').value.trim();
+        const section = document.getElementById('studentSection').value;
+        
+        if (!name || !roll) {
+          alert('Please enter both name and roll number');
+          return;
+        }
+        
+        const id = 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        state.students.push({ id, name, roll, section: section || null });
+        
+        document.getElementById('studentName').value = '';
+        document.getElementById('studentRoll').value = '';
+        document.getElementById('studentSection').value = '';
+        
+        saveState();
+        render();
+      });
+
+      document.getElementById('dateSelect').addEventListener('change', render);
+      document.getElementById('searchStudent').addEventListener('input', renderStudentList);
+
+      document.getElementById('quickAction').addEventListener('change', (e) => {
+        const action = e.target.value;
+        if (!action) return;
+        
+        if (state.subjects.length === 0) {
+          alert('Please add subjects first');
+          e.target.value = '';
+          return;
+        }
+        
+        const date = document.getElementById('dateSelect').value;
+        const status = action === 'all-present' ? 'present' : 'absent';
+        const subject = state.selectedSubject;
+        const section = state.selectedSection;
+        
+        let studentsToMark = state.students;
+        if (section) {
+          studentsToMark = studentsToMark.filter(s => s.section === section);
+        }
+        
+        if (subject) {
+          studentsToMark.forEach(s => setAttendance(date, s.id, subject, status));
+        } else {
+          studentsToMark.forEach(s => {
+            state.subjects.forEach(sub => setAttendance(date, s.id, sub.id, status));
+          });
+        }
+        
+        saveState();
+        render();
+        e.target.value = '';
+      });
+
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          switchView(tab.dataset.view);
+          render();
+        });
+      });
+
+      document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        const date = document.getElementById('dateSelect').value;
+        exportCSV(date);
+      });
+
+      document.getElementById('exportSectionCsvBtn').addEventListener('click', () => {
+        const date = document.getElementById('dateSelect').value;
+        exportSectionWiseCSV(date);
+      });
+
+      document.getElementById('exportSubjectCsvBtn').addEventListener('click', () => {
+        const date = document.getElementById('dateSelect').value;
+        exportSubjectWiseCSV(date);
+      });
+
+      document.getElementById('exportAllBtn').addEventListener('click', exportAllRecords);
+
+      document.getElementById('loadSampleBtn').addEventListener('click', () => {
+        if ((state.students.length > 0 || state.subjects.length > 0 || state.sections.length > 0) && 
+            !confirm('This will replace existing data. Continue?')) return;
+        
+        state.sections = [
+          { id: 'sec1', name: 'Section A' },
+          { id: 'sec2', name: 'Section B' },
+          { id: 'sec3', name: 'Section C' }
+        ];
+        
+        state.subjects = [
+          { id: 'sub1', name: 'Mathematics', code: 'MATH101' },
+          { id: 'sub2', name: 'Physics', code: 'PHY101' },
+          { id: 'sub3', name: 'Chemistry', code: 'CHEM101' },
+          { id: 'sub4', name: 'English', code: 'ENG101' },
+          { id: 'sub5', name: 'Computer Science', code: 'CS101' }
+        ];
+        
+        state.students = [
+          { id: 's1', name: 'Rahul Sharma', roll: 'IT-001', section: 'sec1' },
+          { id: 's2', name: 'Priya Singh', roll: 'IT-002', section: 'sec1' },
+          { id: 's3', name: 'Aman Verma', roll: 'IT-003', section: 'sec1' },
+          { id: 's4', name: 'Sneha Patel', roll: 'IT-004', section: 'sec2' },
+          { id: 's5', name: 'Vikram Kumar', roll: 'IT-005', section: 'sec2' },
+          { id: 's6', name: 'Neha Gupta', roll: 'IT-006', section: 'sec2' },
+          { id: 's7', name: 'Arjun Reddy', roll: 'IT-007', section: 'sec3' },
+          { id: 's8', name: 'Kavya Menon', roll: 'IT-008', section: 'sec3' }
+        ];
+        
+        const today = new Date().toISOString().split('T')[0];
+        state.attendance[today] = {};
+        
+        state.students.forEach((student, i) => {
+          state.attendance[today][student.id] = {};
+          state.subjects.forEach((subject, j) => {
+            state.attendance[today][student.id][subject.id] = 
+              (i + j) % 3 === 0 ? 'absent' : 'present';
+          });
+        });
+        
+        saveState();
+        render();
+      });
+
+      document.getElementById('clearAllBtn').addEventListener('click', () => {
+        if (!confirm('Delete all data? This cannot be undone!')) return;
+        state = { 
+          students: [], 
+          subjects: [], 
+          sections: [], 
+          attendance: {}, 
+          selectedSubject: null, 
+          selectedSection: null, 
+          savedAt: null 
+        };
+        saveState();
+        render();
+      });
+    }
+
+    function exportCSV(date) {
+      if (state.subjects.length === 0) {
+        alert('Please add subjects first');
+        return;
+      }
+      
+      const rows = [['Roll No', 'Name', 'Section', ...state.subjects.map(s => s.code), 'Overall']];
+      
+      state.students.forEach(student => {
+        const section = state.sections.find(sec => sec.id === student.section);
+        const row = [student.roll, student.name, section ? section.name : '-'];
+        let presentCount = 0;
+        
+        state.subjects.forEach(subject => {
+          const status = getAttendance(date, student.id, subject.id);
+          row.push(status === 'present' ? 'Present' : 'Absent');
+          if (status === 'present') presentCount++;
+        });
+        
+        const overall = presentCount > state.subjects.length / 2 ? 'Present' : 'Absent';
+        row.push(overall);
+        rows.push(row);
+      });
+      
+      downloadCSV(rows, `attendance-${date}.csv`);
+    }
+
+    function exportSectionWiseCSV(date) {
+      if (state.sections.length === 0) {
+        alert('Please add sections first');
+        return;
+      }
+      
+      state.sections.forEach(section => {
+        const sectionStudents = state.students.filter(s => s.section === section.id);
+        const rows = [['Roll No', 'Name', 'Section', ...state.subjects.map(s => s.code)]];
+        
+        sectionStudents.forEach(student => {
+          const row = [student.roll, student.name, section.name];
+          state.subjects.forEach(subject => {
+            const status = getAttendance(date, student.id, subject.id);
+            row.push(status === 'present' ? 'Present' : 'Absent');
+          });
+          rows.push(row);
+        });
+        
+        downloadCSV(rows, `${section.name}-attendance-${date}.csv`);
+      });
+    }
+
+    function exportSubjectWiseCSV(date) {
+      if (state.subjects.length === 0) {
+        alert('Please add subjects first');
+        return;
+      }
+      
+      state.subjects.forEach(subject => {
+        const rows = [['Roll No', 'Name', 'Section', 'Status', 'Date', 'Subject']];
+        
+        state.students.forEach(student => {
+          const section = state.sections.find(sec => sec.id === student.section);
+          const status = getAttendance(date, student.id, subject.id);
+          rows.push([
+            student.roll,
+            student.name,
+            section ? section.name : '-',
+            status === 'present' ? 'Present' : 'Absent',
+            date,
+            subject.name
+          ]);
+        });
+        
+        downloadCSV(rows, `${subject.code}-attendance-${date}.csv`);
+      });
+    }
+
+    function exportAllRecords() {
+      if (state.subjects.length === 0) {
+        alert('Please add subjects first');
+        return;
+      }
+      
+      const rows = [['Date', 'Roll No', 'Name', 'Section', 'Subject Code', 'Subject Name', 'Status']];
+      const dates = Object.keys(state.attendance).sort();
+      
+      dates.forEach(date => {
+        state.students.forEach(student => {
+          const section = state.sections.find(sec => sec.id === student.section);
+          state.subjects.forEach(subject => {
+            const status = getAttendance(date, student.id, subject.id);
+            rows.push([
+              date,
+              student.roll,
+              student.name,
+              section ? section.name : '-',
+              subject.code,
+              subject.name,
+              status === 'present' ? 'Present' : 'Absent'
+            ]);
+          });
+        });
+      });
+      
+      downloadCSV(rows, `all-attendance-records.csv`);
+    }
+
+    function downloadCSV(rows, filename) {
+      const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      return date.toLocaleDateString('en-IN', { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>
